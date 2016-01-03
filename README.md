@@ -1,4 +1,3 @@
-# ElixirExif
 
 **TODO: Add description**
 
