@@ -6,7 +6,7 @@ defmodule ElixirExif.Tag do
     |> Enum.into(%{})
   end
 
-  def decode_tag({tag_id, %{idf: idf, type_id: type_id, component_count: component_count, value: value}}, read_unsigned) do
+  def decode_tag(%{tag_id: tag_id, idf: idf, type_id: type_id, component_count: component_count, value: value}, read_unsigned) do
     name = get_tag_name(idf, tag_id)
     value = decode_value(type_id, component_count, read_unsigned, value)
     {name, value}
@@ -148,9 +148,11 @@ defmodule ElixirExif.Tag do
   defp get_tag_name(:tiff, 0x829d), do: :f_number
   defp get_tag_name(:tiff, 0x83bb), do: :iptcnaa
   defp get_tag_name(:tiff, 0x8649), do: :image_resources
+  defp get_tag_name(:tiff, 0x8769), do: :exif_tag
   defp get_tag_name(:tiff, 0x8773), do: :inter_color_profile
   defp get_tag_name(:tiff, 0x8822), do: :exposure_program
   defp get_tag_name(:tiff, 0x8824), do: :spectral_sensitivity
+  defp get_tag_name(:tiff, 0x8825), do: :gps_tag
   defp get_tag_name(:tiff, 0x8827), do: :iso_speed_ratings
   defp get_tag_name(:tiff, 0x8828), do: :oecf
   defp get_tag_name(:tiff, 0x8829), do: :interlace
@@ -303,6 +305,7 @@ defmodule ElixirExif.Tag do
   defp get_tag_name(:exif, 0xa002), do: :pixel_x_dimension
   defp get_tag_name(:exif, 0xa003), do: :pixel_y_dimension
   defp get_tag_name(:exif, 0xa004), do: :related_sound_file
+  defp get_tag_name(:exif, 0xa005), do: :interoperability_tag
   defp get_tag_name(:exif, 0xa20b), do: :flash_energy
   defp get_tag_name(:exif, 0xa20c), do: :spatial_frequency_response
   defp get_tag_name(:exif, 0xa20e), do: :focal_plane_x_resolution
@@ -369,5 +372,5 @@ defmodule ElixirExif.Tag do
   defp get_tag_name(:gps, 0x001c), do: :gps_area_information
   defp get_tag_name(:gps, 0x001d), do: :gps_date_stamp
   defp get_tag_name(:gps, 0x001e), do: :gps_differential
-
+  defp get_tag_name(ifd, tag), do: String.to_atom("#{ifd}_#{tag}")
 end

@@ -54,27 +54,27 @@ defmodule ElixirExif do
     read_unsigned = get_read_unsigned(endian)
     42 = read_unsigned.(forty_two) # double check
     offset = read_unsigned.(offset)
-    {fields, next_offset} = parse_idf(:tiff, app1, offset, read_unsigned, Map.new) # parse 0th IFD
+    {fields, next_offset} = parse_idf(:tiff, app1, offset, read_unsigned, MapSet.new) # parse 0th IFD
     unless next_offset == 0 do
       {fields, _} = parse_idf(:tiff, app1, next_offset, read_unsigned, fields) # parse 1st IFD
     end
-    {exif_tag, fields} = Map.pop(fields, @exif_ifd)
+    exif_tag = find_field(fields, @exif_ifd)#Map.pop(fields, @exif_ifd)
     unless exif_tag == nil do
       exif_offset = read_unsigned.(exif_tag.value)
       {fields, _} = parse_idf(:exif, app1, exif_offset, read_unsigned, fields) # parse EXIF IFD
     end
-    {gps_tag, fields} = Map.pop(fields, @gps_ifd)
+    gps_tag = find_field(fields, @gps_ifd)#Map.pop(fields, @gps_ifd)
     unless gps_tag == nil do
       gps_offset = read_unsigned.(gps_tag.value)
       {fields, _} = parse_idf(:gps, app1, gps_offset, read_unsigned, fields) # parse GPS IFD
     end
-    {interop_tag, fields} = Map.pop(fields, @interop_ifd)
+    interop_tag = find_field(fields, @interop_ifd)#Map.pop(fields, @interop_ifd)
     unless gps_tag == nil do
       interop_offset = read_unsigned.(interop_tag.value)
       {fields, _} = parse_idf(:interop, app1, interop_offset, read_unsigned, fields) # parse interop IFD
     end
-    {thumbnail_offset_tag, fields} = Map.pop(fields, @thumbnail_offset)
-    {thumbnail_length_tag, fields} = Map.pop(fields, @thumbnail_length)
+    thumbnail_offset_tag = find_field(fields, @thumbnail_offset)#Map.pop(fields, @thumbnail_offset)
+    thumbnail_length_tag = find_field(fields, @thumbnail_length)#Map.pop(fields, @thumbnail_length)
     decoded = ElixirExif.Tag.decode_tags(fields, read_unsigned)
     unless thumbnail_offset_tag == nil or thumbnail_length_tag == nil do
       thumbnail_offset = read_unsigned.(thumbnail_offset_tag.value)
@@ -112,7 +112,13 @@ defmodule ElixirExif do
       value_offset = read_unsigned.(value)
       <<_ :: binary-size(value_offset), value :: binary-size(field_byte_length), _ :: binary>> = start_of_tiff
     end
-    parse_fields(name, remaining - 1, rest, start_of_tiff, read_unsigned, Map.put_new(acc, tag_id, %{idf: name, type_id: type_id, component_count: component_count, value: value}))
+    parse_fields(name, remaining - 1, rest, start_of_tiff, read_unsigned, MapSet.put(acc, %{tag_id: tag_id, idf: name, type_id: type_id, component_count: component_count, value: value}))
+  end
+
+  defp find_field(fields, tag_id) do
+    fields
+    |> Enum.find(fn %{tag_id: ^tag_id} -> true
+                    _ -> false end)
   end
 
   defp get_field_byte_length(@byte, component_count), do: component_count
