@@ -1,7 +1,7 @@
 
-Library to parse out exif tags and thumbnail data from jpeg/tiff images.  
-The only other existing exif parser I found for Elixir is [ExExif](https://github.com/pragdave/exexif)
-which is currently dead as of time of writing, so I wrote this based on it.
+Library to parse out exif tags and thumbnail data from jpeg/tiff images.
+
+The only other existing exif parser I found for Elixir is [ExExif](https://github.com/pragdave/exexif) (which is currently dead and non-functional as of time of writing), so I wrote this based on it.
 
 ## Usage
 
