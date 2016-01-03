@@ -3,12 +3,6 @@ Library to parse out exif tags and thumbnail data from jpeg/tiff images.
 
 The only other existing exif parser I found for Elixir is [ExExif](https://github.com/pragdave/exexif) (which is currently dead and non-functional as of time of writing), so I wrote this based on it.
 
-## Usage
-
-        {:ok, fields, thumbnail} = ElixirExif.parse_file("path/to/image.jpg")
-
-        {:ok, fields, thumbnail} = ElixirExif.parse_binary(<<image binary>>)
-
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
@@ -18,3 +12,15 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         def deps do
           [{:elixir_exif, "~> 0.1.0"}]
         end
+        
+## Usage
+
+        {:ok, fields, thumbnail} = ElixirExif.parse_file("path/to/image.jpg")
+
+        {:ok, fields, thumbnail} = ElixirExif.parse_binary(<<image binary>>)
+
+## Benchmarks
+
+        ## ExifBench
+        parse bin        50000   336.88 µs/op
+        parse file       20000   499.25 µs/op
