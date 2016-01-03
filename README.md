@@ -18,9 +18,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         def deps do
           [{:elixir_exif, "~> 0.1.0"}]
         end
-
-  2. Ensure elixir_exif is started before your application:
-
-        def application do
-          [applications: [:elixir_exif]]
-        end
