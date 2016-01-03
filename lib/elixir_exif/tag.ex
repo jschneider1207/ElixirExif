@@ -122,7 +122,7 @@ defmodule ElixirExif.Tag do
   defp get_tag_name(:tiff, 0x0159), do: :y_clip_path_units
   defp get_tag_name(:tiff, 0x015a), do: :indexed
   defp get_tag_name(:tiff, 0x015b), do: :jpeg_tables
-  defp get_tag_name(:tiff, 0x015f), do: :o_p_i_proxy
+  defp get_tag_name(:tiff, 0x015f), do: :opi_proxy
   defp get_tag_name(:tiff, 0x0200), do: :jpeg_proc
   defp get_tag_name(:tiff, 0x0201), do: :jpeg_interchange_format
   defp get_tag_name(:tiff, 0x0202), do: :jpeg_interchange_format_length
