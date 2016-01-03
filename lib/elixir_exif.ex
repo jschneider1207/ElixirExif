@@ -34,7 +34,7 @@ defmodule ElixirExif do
   @doc """
   Parses out the exif tags and thumbnail data (if it exists) from a jpeg image.
   """
-  def parse_binary(<<@soi :: 16, rest :: binary>> = full) do
+  def parse_binary(<<@soi :: 16, rest :: binary>>) do
     rest
     |> find_app1
     |> parse_app1
@@ -129,10 +129,4 @@ defmodule ElixirExif do
   defp get_field_byte_length(@undefined, component_count), do: component_count
   defp get_field_byte_length(@slong, component_count), do: 4*component_count
   defp get_field_byte_length(@srational, component_count), do: 5*component_count
-
-  defp parse_thumbnail({fields, nil}, _bytes), do: {:ok, fields, nil}
-  defp parse_thumbnail({fields, {offset, length}}, bytes) do
-    <<_ :: binary-size(offset), thumbnail :: binary-size(length), _ ::binary>> = bytes
-    {:ok, fields, thumbnail}
-  end
 end

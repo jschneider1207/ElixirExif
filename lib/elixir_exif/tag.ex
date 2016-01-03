@@ -26,7 +26,7 @@ defmodule ElixirExif.Tag do
     decode_numeric(value, component_count, 4, read_unsigned)
     |>maybe_signed_int(:signed)
   end
-  defp decode_value(10, component_count, read_unsigned, value), do: nil#decode_ratio(value, component_count, read_unsigned, :signed) # srational
+  defp decode_value(10, _component_count, _read_unsigned, _value), do: nil#decode_ratio(value, component_count, read_unsigned, :signed) # srational
 
   defp decode_numeric(value, component_count, size, read_unsigned) do
     length = component_count * size
