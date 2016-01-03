@@ -40,7 +40,7 @@ defmodule ElixirExif.Tag do
 
   defp read_unsigned_many(<<>>, _size, _read_unsigned), do: []
   defp read_unsigned_many(data, size, read_unsigned) do
-    << number :: binary-size(size), rest :: binary >> = data
+    <<number :: binary-size(size), rest :: binary >> = data
     [read_unsigned.(number) | read_unsigned_many(rest, size, read_unsigned)]
   end
 
@@ -59,7 +59,7 @@ defmodule ElixirExif.Tag do
   end
 
   defp maybe_signed_int(x, :signed) when x > @max_signed_32_bit_int, do: x - @max_signed_32_bit_int - 1
-  defp maybe_signed_int(x, _), do: x  # +ve or unsigned
+  defp maybe_signed_int(x, _), do: x
 
   # parsed from http://www.exiv2.org/tags.html
   defp get_tag_name(:tiff, 0x000b), do: :processing_software
