@@ -41,7 +41,7 @@ defmodule ElixirExif do
   end
   def parse_binary(_), do: {:error, "Not a valid jpeg binary."}
 
-  defp find_app1(<<@app1 :: 16, _length :: 16, "Exif" :: binary, 0 :: 16, rest :: binary>>), do: rest
+  defp find_app1(<<@app1 :: 16, _length :: 16, "Exif" :: binary, 0 :: 16, rest :: binary>>), do: {:ok, rest}
   defp find_app1(<< 0xFF :: 8, _num :: 8, len :: 16, rest :: binary>>) do
     # Not app1, skip it
     <<_skip :: size(len)-unit(8), rest :: binary>> = rest
@@ -49,7 +49,7 @@ defmodule ElixirExif do
   end
   defp find_app1(_), do: {:error, "Cannot find app1 data."}
 
-  defp parse_app1(app1) do
+  defp parse_app1({:ok, app1}) do
     {endian, forty_two, offset} = parse_tiff_header(app1)
     read_unsigned = get_read_unsigned(endian)
     42 = read_unsigned.(forty_two) # double check
@@ -85,6 +85,7 @@ defmodule ElixirExif do
       {:ok, decoded, nil}
     end
   end
+  defp parse_app1(error), do: error
 
   defp parse_tiff_header(<<@little_endian :: 16, forty_two :: binary-size(2), offset :: binary-size(4), _rest :: binary>>), do: {:little, forty_two, offset}
   defp parse_tiff_header(<<@big_endian :: 16, forty_two :: binary-size(2), offset :: binary-size(4), _rest :: binary>>), do: {:big, forty_two, offset}
