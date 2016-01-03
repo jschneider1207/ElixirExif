@@ -30,11 +30,11 @@ defmodule ElixirExif.Tag do
 
   defp decode_numeric(value, component_count, size, read_unsigned) do
     length = component_count * size
-    values = <<data :: binary-size(length), _ :: binary>> = value
+    <<data :: binary-size(length), _ :: binary>> = value
     if component_count == 1 do
-      read_unsigned.(values)
+      read_unsigned.(data)
     else
-      read_unsigned_many(values, size, read_unsigned)
+      read_unsigned_many(data, size, read_unsigned)
     end
   end
 
