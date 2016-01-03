@@ -128,5 +128,5 @@ defmodule ElixirExif do
   defp get_field_byte_length(@rational, component_count), do: 8*component_count
   defp get_field_byte_length(@undefined, component_count), do: component_count
   defp get_field_byte_length(@slong, component_count), do: 4*component_count
-  defp get_field_byte_length(@srational, component_count), do: 5*component_count
+  defp get_field_byte_length(@srational, component_count), do: 8*component_count
 end
