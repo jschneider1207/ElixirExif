@@ -69,7 +69,7 @@ defmodule ElixirExif do
       {fields, _} = parse_idf(:gps, app1, gps_offset, read_unsigned, fields) # parse GPS IFD
     end
     interop_tag = find_field(fields, @interop_ifd)
-    unless gps_tag == nil do
+    unless interop_tag == nil do
       interop_offset = read_unsigned.(interop_tag.value)
       {fields, _} = parse_idf(:interop, app1, interop_offset, read_unsigned, fields) # parse interop IFD
     end
