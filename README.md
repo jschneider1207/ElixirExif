@@ -18,9 +18,3 @@ If [available in Hex](https://hex.pm/docs/publish), the package can be installed
         {:ok, fields, thumbnail} = ElixirExif.parse_file("path/to/image.jpg")
 
         {:ok, fields, thumbnail} = ElixirExif.parse_binary(<<image binary>>)
-
-## Benchmarks
-
-        ## ExifBench
-        parse bin        50000   336.88 µs/op
-        parse file       20000   499.25 µs/op
