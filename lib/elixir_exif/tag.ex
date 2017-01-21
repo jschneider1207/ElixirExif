@@ -51,10 +51,11 @@ defmodule ElixirExif.Tag do
     numerator = read_unsigned.(numerator) |> maybe_signed_int(signed)
     denominator = read_unsigned.(denominator) |> maybe_signed_int(signed)
     result = case {numerator, denominator} do
-      {numerator, 1} -> numerator
-      {1, denominator} -> "1/#{denominator}"
-      {numerator, denominator} -> numerator/denominator
-    end
+               {numerator, 1} -> numerator
+               {1, denominator} -> "1/#{denominator}"
+               {numerator, denominator} ->
+                 if denominator == 0, do: 0, else: numerator/denominator
+             end
     [result | do_decode_ratio(rest, component_count-1, read_unsigned, signed)]
   end
 
