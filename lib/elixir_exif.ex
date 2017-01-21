@@ -50,40 +50,21 @@ defmodule ElixirExif do
   defp find_app1(_), do: {:error, "Cannot find app1 data."}
 
   defp parse_app1({:ok, app1}) do
-    {endian, forty_two, offset} = parse_tiff_header(app1)
+    {endian, forty_two, header_offset} = parse_tiff_header(app1)
     read_unsigned = get_read_unsigned(endian)
     42 = read_unsigned.(forty_two) # double check
-    offset = read_unsigned.(offset)
-    {fields, next_offset} = parse_idf(:tiff, app1, offset, read_unsigned, MapSet.new) # parse 0th IFD
-    unless next_offset == 0 do
-      {fields, _} = parse_idf(:tiff, app1, next_offset, read_unsigned, fields) # parse 1st IFD
-    end
-    exif_tag = find_field(fields, @exif_ifd)
-    unless exif_tag == nil do
-      exif_offset = read_unsigned.(exif_tag.value)
-      {fields, _} = parse_idf(:exif, app1, exif_offset, read_unsigned, fields) # parse EXIF IFD
-    end
-    gps_tag = find_field(fields, @gps_ifd)
-    unless gps_tag == nil do
-      gps_offset = read_unsigned.(gps_tag.value)
-      {fields, _} = parse_idf(:gps, app1, gps_offset, read_unsigned, fields) # parse GPS IFD
-    end
-    interop_tag = find_field(fields, @interop_ifd)
-    unless interop_tag == nil do
-      interop_offset = read_unsigned.(interop_tag.value)
-      {fields, _} = parse_idf(:interop, app1, interop_offset, read_unsigned, fields) # parse interop IFD
-    end
-    thumbnail_offset_tag = find_field(fields, @thumbnail_offset)
-    thumbnail_length_tag = find_field(fields, @thumbnail_length)
+    offset = read_unsigned.(header_offset)
+
+    fields =
+      parse_first_ifds(MapSet.new, app1, offset, read_unsigned) |>
+      parse_exif_ifd(app1, read_unsigned) |>
+      parse_gps_ifd(app1, read_unsigned) |>
+      parse_interop_ifd(app1, read_unsigned)
+
     decoded = ElixirExif.Tag.decode_tags(fields, read_unsigned)
-    unless thumbnail_offset_tag == nil or thumbnail_length_tag == nil do
-      thumbnail_offset = read_unsigned.(thumbnail_offset_tag.value)
-      thumbnail_length = read_unsigned.(thumbnail_length_tag.value)
-      <<_ :: binary-size(thumbnail_offset), thumbnail :: binary-size(thumbnail_length), _ :: binary>> = app1
-      {:ok, decoded, thumbnail}
-    else
-      {:ok, decoded, nil}
-    end
+    thumbnail = extract_thumbnail(fields, app1, read_unsigned)
+
+    {:ok, decoded, thumbnail}
   end
   defp parse_app1(error), do: error
 
@@ -109,11 +90,19 @@ defmodule ElixirExif do
     type_id = read_unsigned.(type_id)
     component_count = read_unsigned.(component_count)
     field_byte_length = get_field_byte_length(type_id, component_count)
-    if field_byte_length > 4 do
+    fixed_value = if field_byte_length > 4 do
       value_offset = read_unsigned.(value)
-      <<_ :: binary-size(value_offset), value :: binary-size(field_byte_length), _ :: binary>> = start_of_tiff
+      <<_ :: binary-size(value_offset), new_value :: binary-size(field_byte_length), _ :: binary>> = start_of_tiff
+      new_value
+    else
+      value
     end
-    parse_fields(name, remaining - 1, rest, start_of_tiff, read_unsigned, MapSet.put(acc, %{tag_id: tag_id, idf: name, type_id: type_id, component_count: component_count, value: value}))
+    parse_fields(name, remaining - 1, rest, start_of_tiff, read_unsigned,
+      MapSet.put(acc, %{tag_id: tag_id,
+                        idf: name,
+                        type_id: type_id,
+                        component_count: component_count,
+                        value: fixed_value}))
   end
 
   defp find_field(fields, tag_id) do
@@ -130,4 +119,63 @@ defmodule ElixirExif do
   defp get_field_byte_length(@undefined, component_count), do: component_count
   defp get_field_byte_length(@slong, component_count), do: 4*component_count
   defp get_field_byte_length(@srational, component_count), do: 8*component_count
+
+  defp parse_first_ifds(fields, app1, offset, read_unsigned) do
+    {fields, next_offset} = parse_idf(:tiff, app1, offset, read_unsigned, fields) # parse 0th IFD
+
+    if next_offset == 0 do
+      fields
+    else
+      {new_fields, _} = parse_idf(:tiff, app1, next_offset, read_unsigned, fields) # parse 1st IFD
+      new_fields
+    end
+  end
+
+  defp parse_exif_ifd(fields, app1, read_unsigned) do
+    exif_tag = find_field(fields, @exif_ifd)
+    if exif_tag == nil do
+      fields
+    else
+      exif_offset = read_unsigned.(exif_tag.value)
+      {new_fields, _} = parse_idf(:exif, app1, exif_offset, read_unsigned, fields) # parse EXIF IFD
+      new_fields
+    end
+  end
+
+  defp parse_gps_ifd(fields, app1, read_unsigned) do
+    gps_tag = find_field(fields, @gps_ifd)
+    if gps_tag == nil do
+      fields
+    else
+      gps_offset = read_unsigned.(gps_tag.value)
+      {new_fields, _} = parse_idf(:gps, app1, gps_offset, read_unsigned, fields) # parse GPS IFD
+      new_fields
+    end
+  end
+
+  defp parse_interop_ifd(fields, app1, read_unsigned) do
+    interop_tag = find_field(fields, @interop_ifd)
+    if interop_tag == nil do
+      fields
+    else
+      interop_offset = read_unsigned.(interop_tag.value)
+      {new_fields, _} = parse_idf(:interop, app1, interop_offset, read_unsigned, fields) # parse interop IFD
+      new_fields
+    end
+  end
+
+  defp extract_thumbnail(fields, app1, read_unsigned) do
+    thumbnail_offset_tag = find_field(fields, @thumbnail_offset)
+    thumbnail_length_tag = find_field(fields, @thumbnail_length)
+
+    unless thumbnail_offset_tag == nil or thumbnail_length_tag == nil do
+      thumbnail_offset = read_unsigned.(thumbnail_offset_tag.value)
+      thumbnail_length = read_unsigned.(thumbnail_length_tag.value)
+      <<_ :: binary-size(thumbnail_offset), thumbnail :: binary-size(thumbnail_length), _ :: binary>> = app1
+      thumbnail
+    else
+      nil
+    end
+  end
+
 end
