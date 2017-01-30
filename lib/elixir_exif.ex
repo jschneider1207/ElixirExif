@@ -55,11 +55,10 @@ defmodule ElixirExif do
     42 = read_unsigned.(forty_two) # double check
     offset = read_unsigned.(header_offset)
 
-    fields =
-      parse_first_ifds(app1, offset, read_unsigned) |>
-      parse_idf_field(@exif_ifd, :exif, app1, read_unsigned) |>
-      parse_idf_field(@gps_ifd, :gps, app1, read_unsigned) |>
-      parse_idf_field(@interop_ifd, :interop, app1, read_unsigned)
+    fields = parse_first_ifds(app1, offset, read_unsigned)
+    |> parse_idf_field(@exif_ifd, :exif, app1, read_unsigned)
+    |> parse_idf_field(@gps_ifd, :gps, app1, read_unsigned)
+    |> parse_idf_field(@interop_ifd, :interop, app1, read_unsigned)
 
     decoded = ElixirExif.Tag.decode_tags(fields, read_unsigned)
     thumbnail = extract_thumbnail(fields, app1, read_unsigned)
