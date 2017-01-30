@@ -56,10 +56,10 @@ defmodule ElixirExif do
     offset = read_unsigned.(header_offset)
 
     fields =
-      parse_first_ifds(MapSet.new, app1, offset, read_unsigned) |>
-      parse_exif_ifd(app1, read_unsigned) |>
-      parse_gps_ifd(app1, read_unsigned) |>
-      parse_interop_ifd(app1, read_unsigned)
+      parse_first_ifds(app1, offset, read_unsigned) |>
+      parse_idf_field(@exif_ifd, :exif, app1, read_unsigned) |>
+      parse_idf_field(@gps_ifd, :gps, app1, read_unsigned) |>
+      parse_idf_field(@interop_ifd, :interop, app1, read_unsigned)
 
     decoded = ElixirExif.Tag.decode_tags(fields, read_unsigned)
     thumbnail = extract_thumbnail(fields, app1, read_unsigned)
@@ -120,8 +120,8 @@ defmodule ElixirExif do
   defp get_field_byte_length(@slong, component_count), do: 4*component_count
   defp get_field_byte_length(@srational, component_count), do: 8*component_count
 
-  defp parse_first_ifds(fields, app1, offset, read_unsigned) do
-    {fields, next_offset} = parse_idf(:tiff, app1, offset, read_unsigned, fields) # parse 0th IFD
+  defp parse_first_ifds(app1, offset, read_unsigned) do
+    {fields, next_offset} = parse_idf(:tiff, app1, offset, read_unsigned, MapSet.new) # parse 0th IFD
 
     if next_offset == 0 do
       fields
@@ -131,35 +131,14 @@ defmodule ElixirExif do
     end
   end
 
-  defp parse_exif_ifd(fields, app1, read_unsigned) do
-    exif_tag = find_field(fields, @exif_ifd)
-    if exif_tag == nil do
-      fields
-    else
-      exif_offset = read_unsigned.(exif_tag.value)
-      {new_fields, _} = parse_idf(:exif, app1, exif_offset, read_unsigned, fields) # parse EXIF IFD
-      new_fields
-    end
-  end
+  defp parse_idf_field(fields, id, type, app1, read_unsigned) do
+    tag = find_field(fields, id)
 
-  defp parse_gps_ifd(fields, app1, read_unsigned) do
-    gps_tag = find_field(fields, @gps_ifd)
-    if gps_tag == nil do
+    if tag == nil do
       fields
     else
-      gps_offset = read_unsigned.(gps_tag.value)
-      {new_fields, _} = parse_idf(:gps, app1, gps_offset, read_unsigned, fields) # parse GPS IFD
-      new_fields
-    end
-  end
-
-  defp parse_interop_ifd(fields, app1, read_unsigned) do
-    interop_tag = find_field(fields, @interop_ifd)
-    if interop_tag == nil do
-      fields
-    else
-      interop_offset = read_unsigned.(interop_tag.value)
-      {new_fields, _} = parse_idf(:interop, app1, interop_offset, read_unsigned, fields) # parse interop IFD
+      offset = read_unsigned.(tag.value)
+      {new_fields, _} = parse_idf(type, app1, offset, read_unsigned, fields)
       new_fields
     end
   end
