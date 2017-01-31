@@ -27,7 +27,8 @@ defmodule ElixirExif do
   @type tumbnail :: binary
 
   @doc """
-  Opens a jpeg image and parses out the exif tags and thumbnail data, if it exists.
+  Opens a jpeg image and parses out the exif tags and
+  thumbnail data (if it exists).
   """
   @spec parse_file(String.t) ::
     {:ok, tags, tumbnail | nil} |
@@ -38,9 +39,10 @@ defmodule ElixirExif do
   end
 
   @doc """
-  Parses out the exif tags and thumbnail data (if it exists) from a jpeg image.
+  Parses out the exif tags and thumbnail data (if it exists)
+  from a jpeg binary.
   """
-  @spec parse_file(binary) ::
+  @spec parse_binary(binary) ::
     {:ok, tags, tumbnail | nil} |
     {:error, reason :: term}
   def parse_binary(<<@soi :: 16, rest :: binary>>) do
