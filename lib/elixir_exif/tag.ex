@@ -374,5 +374,5 @@ defmodule ElixirExif.Tag do
   defp get_tag_name(:gps, 0x001c), do: :gps_area_information
   defp get_tag_name(:gps, 0x001d), do: :gps_date_stamp
   defp get_tag_name(:gps, 0x001e), do: :gps_differential
-  defp get_tag_name(ifd, tag), do: :unknown
+  defp get_tag_name(_ifd, _tag), do: :unknown
 end
