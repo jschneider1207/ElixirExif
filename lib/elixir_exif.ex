@@ -31,7 +31,7 @@ defmodule ElixirExif do
   """
   @spec parse_file(String.t) ::
     {:ok, tags, tumbnail | nil} |
-    {:error, reason}
+    {:error, reason :: term}
   def parse_file(path) do
     File.open!(path, [:read], &(IO.binread(&1, @max_length)))
     |> parse_binary
@@ -42,7 +42,7 @@ defmodule ElixirExif do
   """
   @spec parse_file(binary) ::
     {:ok, tags, tumbnail | nil} |
-    {:error, reason}
+    {:error, reason :: term}
   def parse_binary(<<@soi :: 16, rest :: binary>>) do
     rest
     |> find_app1
