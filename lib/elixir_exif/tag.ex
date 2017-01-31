@@ -1,4 +1,5 @@
 defmodule ElixirExif.Tag do
+  @moduledoc false
   @max_signed_32_bit_int 2147483647
 
   def decode_tags(tags, read_unsigned) do
@@ -373,5 +374,5 @@ defmodule ElixirExif.Tag do
   defp get_tag_name(:gps, 0x001c), do: :gps_area_information
   defp get_tag_name(:gps, 0x001d), do: :gps_date_stamp
   defp get_tag_name(:gps, 0x001e), do: :gps_differential
-  defp get_tag_name(ifd, tag), do: IO.puts "ifd: #{ifd}, tag: #{tag}"; :unknown
+  defp get_tag_name(ifd, tag), do: :unknown
 end

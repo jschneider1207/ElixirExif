@@ -23,9 +23,15 @@ defmodule ElixirExif do
   @slong 9
   @srational 10
 
+  @type tags :: map
+  @type tumbnail :: binary
+
   @doc """
   Opens a jpeg image and parses out the exif tags and thumbnail data, if it exists.
   """
+  @spec parse_file(String.t) ::
+    {:ok, tags, tumbnail | nil} |
+    {:error, reason}
   def parse_file(path) do
     File.open!(path, [:read], &(IO.binread(&1, @max_length)))
     |> parse_binary
@@ -34,6 +40,9 @@ defmodule ElixirExif do
   @doc """
   Parses out the exif tags and thumbnail data (if it exists) from a jpeg image.
   """
+  @spec parse_file(binary) ::
+    {:ok, tags, tumbnail | nil} |
+    {:error, reason}
   def parse_binary(<<@soi :: 16, rest :: binary>>) do
     rest
     |> find_app1
@@ -89,13 +98,14 @@ defmodule ElixirExif do
     type_id = read_unsigned.(type_id)
     component_count = read_unsigned.(component_count)
     field_byte_length = get_field_byte_length(type_id, component_count)
-    fixed_value = if field_byte_length > 4 do
-      value_offset = read_unsigned.(value)
-      <<_ :: binary-size(value_offset), new_value :: binary-size(field_byte_length), _ :: binary>> = start_of_tiff
-      new_value
-    else
-      value
-    end
+    fixed_value =
+      if field_byte_length > 4 do
+        value_offset = read_unsigned.(value)
+        <<_ :: binary-size(value_offset), new_value :: binary-size(field_byte_length), _ :: binary>> = start_of_tiff
+        new_value
+      else
+        value
+      end
     parse_fields(name, remaining - 1, rest, start_of_tiff, read_unsigned,
       MapSet.put(acc, %{tag_id: tag_id,
                         idf: name,
@@ -155,5 +165,4 @@ defmodule ElixirExif do
       nil
     end
   end
-
 end
