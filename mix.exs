@@ -13,11 +13,11 @@ defmodule ElixirExif.Mixfile do
   end
 
   def application do
-    [applications: [:logger]]
+    [extra_applications: [:logger]]
   end
 
   defp deps do
-    []
+    [{:ex_doc, "~> 0.14.5", only: dev}]
   end
 
   defp description do
