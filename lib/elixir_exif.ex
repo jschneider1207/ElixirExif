@@ -5,7 +5,7 @@ defmodule ElixirExif do
 
   @max_length 2*(65536+2)
   @soi 0xFFD8
-  @eoi 0xFFD9
+  #@eoi 0xFFD9 not used
   @app1 0xFFE1
   @gps_ifd 0x8825
   @exif_ifd 0x8769
@@ -55,6 +55,7 @@ defmodule ElixirExif do
   defp find_app1(<<@app1 :: 16, _length :: 16, "Exif" :: binary, 0 :: 16, rest :: binary>>), do: {:ok, rest}
   defp find_app1(<< 0xFF :: 8, _num :: 8, len :: 16, rest :: binary>>) do
     # Not app1, skip it
+    len = len - 2 # length includes the 2 bytes used to represent the length
     <<_skip :: size(len)-unit(8), rest :: binary>> = rest
     find_app1(rest)
   end
